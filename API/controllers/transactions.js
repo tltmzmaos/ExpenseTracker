@@ -1,4 +1,3 @@
-const { restart } = require("nodemon");
 const Transaction = require("../models/trasactions");
 
 exports.getTransactions = (req, res, next) => {
