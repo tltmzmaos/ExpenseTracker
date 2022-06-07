@@ -1,7 +1,23 @@
 const Transaction = require("../models/trasactions");
+var axios = require("axios");
+
+var data = JSON.stringify({
+  client_id: process.env.PLAID_CLIENT_ID,
+  secret: process.env.PLAID_SECRET_KEY,
+  access_token: process.env.PLAID_ACCESS_TOKEN,
+});
+
+var config = {
+  method: "post",
+  url: "https://development.plaid.com/accounts/balance/get",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  data: data,
+};
 
 exports.getTransactions = (req, res, next) => {
-  const transactionQuery = Transaction.find();
+  const transactionQuery = Transaction.find().sort({ date: -1 });
   let fetchedTransactions;
   transactionQuery
     .then((document) => {
@@ -9,14 +25,20 @@ exports.getTransactions = (req, res, next) => {
       return Transaction.count();
     })
     .then((count) => {
-      res.status(200).json({
-        message: "Transactions fetched successfully!",
-        totalCount: count,
-        transactions: fetchedTransactions,
+      axios(config).then(function (response) {
+        const currentBalance = response.data.accounts[0].balances.current;
+        res.status(200).json({
+          status: 200,
+          message: "Transactions fetched successfully!",
+          balance: currentBalance,
+          totalCount: count,
+          transactions: fetchedTransactions,
+        });
       });
     })
     .catch((err) => {
       res.status(500).json({
+        status: 500,
         message: "Fetching Transactions failed",
       });
     });
@@ -33,8 +55,11 @@ exports.getTransactionsByPeriod = (req, res, next) => {
       return Transaction.count(transactionPeriodQuery);
     })
     .then((count) => {
+      const balance = calculateBalance(fetchedTransactions);
       res.status(200).json({
+        status: 200,
         message: "Transactions fetched successfully!",
+        balance: balance,
         totalCount: count,
         transactions: fetchedTransactions,
       });
@@ -61,3 +86,11 @@ exports.getTransaction = (req, res, next) => {
       });
     });
 };
+
+function calculateBalance(trans) {
+  balance = 0;
+  trans.forEach(function (tran) {
+    balance += tran.amount;
+  });
+  return balance * -1;
+}
