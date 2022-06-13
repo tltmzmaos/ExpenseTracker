@@ -14,27 +14,39 @@ var config = {
     "Content-Type": "application/json",
   },
   data: data,
+  delayed: true,
 };
 
 exports.getTransactions = (req, res, next) => {
+  const pageSize = +req.query.pagesize;
+  const currentPage = req.query.page;
   const transactionQuery = Transaction.find().sort({ date: -1 });
   let fetchedTransactions;
+  if (pageSize && currentPage) {
+    transactionQuery.skip(pageSize * currentPage).limit(pageSize);
+  }
   transactionQuery
     .then((document) => {
       fetchedTransactions = document;
       return Transaction.count();
     })
     .then((count) => {
-      axios(config).then(function (response) {
-        const currentBalance = response.data.accounts[0].balances.current;
-        res.status(200).json({
-          status: 200,
-          message: "Transactions fetched successfully!",
-          balance: currentBalance,
-          totalCount: count,
-          transactions: fetchedTransactions,
-        });
+      res.status(200).json({
+        status: 200,
+        message: "Transactions fetched successfully!",
+        totalCount: count,
+        transactions: fetchedTransactions,
       });
+      // axios(config).then(function (response) {
+      //   const currentBalance = response.data.accounts[0].balances.current;
+
+      //     .catch((err) =>
+      //       res.status(500).json({
+      //         status: 500,
+      //         message: "Fetching Transactions failed",
+      //       })
+      //     );
+      // });
     })
     .catch((err) => {
       res.status(500).json({

@@ -7,6 +7,8 @@ import { AppComponent } from './app.component';
 import { AngularMaterialModule } from './angular-material.module';
 import { HeaderComponent } from './header/header.component';
 import { TransactionListComponent } from './transactions/transaction-list/transaction-list.component';
+import { AngularDevExtremeModule } from './angular-DevExtreme.module';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -18,7 +20,9 @@ import { TransactionListComponent } from './transactions/transaction-list/transa
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
-    AngularMaterialModule
+    AngularMaterialModule,
+    AngularDevExtremeModule,
+    HttpClientModule
   ],
   providers: [],
   bootstrap: [AppComponent]
